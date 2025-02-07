@@ -1,0 +1,156 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Timer, Coffee, PauseCircle } from 'lucide-react';
+
+const TimeTracker = () => {
+  const [breakTime, setBreakTime] = useState(25 * 60); // 25 minutos en segundos para baño
+  const [lunchTime, setLunchTime] = useState(60 * 60); // 1 hora en segundos para almuerzo
+  const [isBreakActive, setIsBreakActive] = useState(false);
+  const [isLunchActive, setIsLunchActive] = useState(false);
+  const [breakTimer, setBreakTimer] = useState(null);
+  const [lunchTimer, setLunchTimer] = useState(null);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const startBreak = () => {
+    if (breakTime <= 0 || isBreakActive) return;
+    
+    setIsBreakActive(true);
+    const timer = setInterval(() => {
+      setBreakTime(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setIsBreakActive(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    setBreakTimer(timer);
+  };
+
+  const startLunch = () => {
+    if (lunchTime <= 0 || isLunchActive) return;
+    
+    setIsLunchActive(true);
+    const timer = setInterval(() => {
+      setLunchTime(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setIsLunchActive(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    setLunchTimer(timer);
+  };
+
+  const stopBreak = () => {
+    if (breakTimer) {
+      clearInterval(breakTimer);
+      setIsBreakActive(false);
+    }
+  };
+
+  const stopLunch = () => {
+    if (lunchTimer) {
+      clearInterval(lunchTimer);
+      setIsLunchActive(false);
+    }
+  };
+
+  const resetTimes = () => {
+    stopBreak();
+    stopLunch();
+    setBreakTime(25 * 60);
+    setLunchTime(60 * 60);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (breakTimer) clearInterval(breakTimer);
+      if (lunchTimer) clearInterval(lunchTimer);
+    };
+  }, [breakTimer, lunchTimer]);
+
+  return (
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader>
+        <CardTitle className="text-center">Control de Tiempos</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="space-y-4">
+          <div className="bg-gray-100 p-4 rounded-lg">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-lg font-medium flex items-center gap-2">
+                <Timer className="w-5 h-5" />
+                Tiempo de Baño
+              </h3>
+              <span className="text-xl font-bold">{formatTime(breakTime)}</span>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                onClick={startBreak} 
+                disabled={isBreakActive || breakTime <= 0}
+                className="w-full"
+              >
+                Iniciar
+              </Button>
+              <Button 
+                onClick={stopBreak} 
+                disabled={!isBreakActive}
+                variant="secondary"
+                className="w-full"
+              >
+                Pausar
+              </Button>
+            </div>
+          </div>
+
+          <div className="bg-gray-100 p-4 rounded-lg">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-lg font-medium flex items-center gap-2">
+                <Coffee className="w-5 h-5" />
+                Tiempo de Almuerzo
+              </h3>
+              <span className="text-xl font-bold">{formatTime(lunchTime)}</span>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                onClick={startLunch} 
+                disabled={isLunchActive || lunchTime <= 0}
+                className="w-full"
+              >
+                Iniciar
+              </Button>
+              <Button 
+                onClick={stopLunch} 
+                disabled={!isLunchActive}
+                variant="secondary"
+                className="w-full"
+              >
+                Pausar
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <Button 
+          onClick={resetTimes} 
+          variant="outline"
+          className="w-full"
+        >
+          Reiniciar Tiempos
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default TimeTracker;
